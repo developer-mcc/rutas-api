@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: rutas-api
+  datasource:
+    # DB_URL manda si está definida; si no, se arma con DB_HOST / DB_PORT / DB_NAME (así lo entrega Render).
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rutas}}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:Admin2024}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # el esquema se crea a mano (ver db-scripts/)
+    properties:
+      # Las entidades no repiten el esquema: todas sus tablas están en ruta.*
+      hibernate.default_schema: ${DB_SCHEMA:ruta}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+server:
+  port: ${PORT:8080}
+  # Detrás de Nginx: toma el protocolo y host reales de X-Forwarded-*. Sin esto, Spring ve las
+  # peticiones del mismo sitio como "otro origen" (CORS) y rechaza los POST con 403.
+  # Es seguro porque en producción la API solo escucha en 127.0.0.1 (SERVER_ADDRESS).
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+app:
+  # Carpeta donde se guardan las imágenes; en producción la sirve Nginx en /uploads/
+  uploads-dir: ${UPLOADS_DIR:./uploads}
+  # Solo desarrollo: sirve /uploads/ desde Spring Boot. En producción lo hace Nginx.
+  serve-uploads: ${SERVE_UPLOADS:true}
+  # Solo desarrollo: origen del frontend (ng serve). En producción no hace falta CORS.
+  cors-origins: ${CORS_ORIGINS:http://localhost:4200}
+  # JWT: el secreto debe tener >= 32 bytes. El valor por defecto es SOLO para desarrollo local y es
+  # público: en producción define siempre JWT_SECRET (el entorno de despliegue ya lo exige).
+  jwt:
+    secret: ${JWT_SECRET:dev-solo-local-secreto-de-mas-de-32-caracteres-0123456789}
+    expiracion: ${JWT_EXPIRACION:PT2H}

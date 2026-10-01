@@ -1,0 +1,41 @@
+# Compilación y caché de Gradle
+.gradle/
+.kotlin/
+build/
+out/
+bin/
+*.class
+*.log
+logs/
+
+# IDEs y editores
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.project
+.classpath
+.settings/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Imágenes subidas en ejecución (no son código)
+uploads/
+
+# Secretos: nunca al repositorio (la plantilla .env.example sí se puede subir)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Herramientas locales de asistentes
+.claude/
+
+# Documentación y scripts SQL: se mantienen fuera del repositorio
+*.md
+*.sql
+db-scripts/

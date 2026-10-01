@@ -1,0 +1,47 @@
+# Desarrollo local del backend.
+#   docker compose up -d                          → solo PostgreSQL (para ./gradlew bootRun)
+#   docker compose --profile completo up -d --build   → PostgreSQL + la API en contenedor (http://localhost:8080)
+# El perfil "completo" necesita JWT_SECRET (32+ bytes), en el entorno o en un .env. El administrador se crea con db-scripts/05_usuario_admin.sql.
+services:
+  postgres:
+    image: postgres:16
+    container_name: rutas-postgres
+    environment:
+      POSTGRES_DB: rutas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin2024
+    ports:
+      - "5433:5432"
+    volumes:
+      - rutas-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d rutas"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    profiles: ["completo"]
+    build: .
+    image: rutas-api:local
+    container_name: rutas-api
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/rutas
+      DB_USER: postgres
+      DB_PASSWORD: Admin2024
+      # Sin valor por defecto a propósito: si JWT_SECRET falta (o tiene menos de 32 bytes) la API
+      # no arranca.
+      JWT_SECRET: ${JWT_SECRET:-}
+      # Sin Nginx delante, el navegador de desarrollo (ng serve) llama directo a la API.
+      CORS_ORIGINS: http://localhost:4200
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - rutas-uploads:/var/www/viaja/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  rutas-pgdata:
+  rutas-uploads:
